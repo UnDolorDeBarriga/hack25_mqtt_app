@@ -27,7 +27,16 @@ class MainActivity : ComponentActivity() {
 
 
         connect(this)
-        // publish("test/topic", "Hello from Android!")
+
+        val fabStar = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabStar)
+
+        fabStar.setOnClickListener {
+            val url = "http://192.168.71.147:8000/mouseketool.mp4"
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = android.net.Uri.parse(url)
+            startActivity(intent)
+        }
+
     }
 
     val flights = mutableListOf<String>()
@@ -100,7 +109,7 @@ class MainActivity : ComponentActivity() {
                                     Log.d("FlightClick", message)
 
                                     val intent = Intent(context, FlightDetailActivity::class.java)
-                                    intent.putExtra("flight_id", flight) // <--- ¡¡ESTO CAMBIA!!
+                                    intent.putExtra("flight_id", flight)
                                     intent.putExtra(
                                         "flight_details",
                                         details.toString()
