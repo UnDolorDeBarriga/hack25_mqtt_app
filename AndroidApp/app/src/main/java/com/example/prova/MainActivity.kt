@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
             }
 
         } catch (e: MqttException) {
-            Log.e("MQTT", "Errore nella connessione: ${e.message}")
+            Log.e("MQTT", "Error in connecting: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -75,24 +75,9 @@ class MainActivity : ComponentActivity() {
         try {
             val message = MqttMessage(payload.toByteArray())
             mqttClient.publish(topic, message)
-            Log.d("MQTT", "Messaggio pubblicato su $topic: $payload")
+            Log.d("MQTT", "Message published on $topic: $payload")
         } catch (e: MqttException) {
-            Log.e("MQTT", "Errore nella pubblicazione: ${e.message}")
+            Log.e("MQTT", "Error in connecting: ${e.message}")
         }
     }
-}
-
-
-@Composable
-fun ConnectionSuccess(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Connected to broker: $name SUCCESSFULLY", modifier = modifier
-    )
-}
-
-@Composable
-fun ConnectionFail(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Connected to broker: $name FAILED", modifier = modifier
-    )
 }
