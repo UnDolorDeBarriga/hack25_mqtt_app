@@ -50,6 +50,17 @@ class MainActivity : ComponentActivity() {
                 .showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
         }
 
+        // 3) **NEW** – handle your “news” menu-item here
+        bottomBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_news -> {
+                    // Launch the NewsActivity
+                    startActivity(Intent(this, NewsActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
         // 3) Real-time filtering as user types
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
