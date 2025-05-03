@@ -44,8 +44,8 @@ class MainActivity : ComponentActivity() {
     }
 
     fun connect(context: android.content.Context) {
-        val brokerUrl =
-            "tcp://10.0.2.2:8000"  // 10.0.2.2 = localhost dell'host visto dall'emulatore
+        val brokerUrl = "tcp://192.168.71.147:1883"
+
         val clientId = MqttClient.generateClientId()
 
         try {
@@ -53,13 +53,15 @@ class MainActivity : ComponentActivity() {
 
             val options = MqttConnectOptions().apply {
                 isCleanSession = true
+                userName = "user"
+                password = "user".toCharArray()
             }
 
             mqttClient.connect(options)
-            Log.d("MQTT", "Connesso a $brokerUrl")
+            Log.d("MQTT", "Connected to $brokerUrl")
 
-            // Sottoscrizione
-            mqttClient.subscribe("test/topic") { topic, message ->
+            // Subscription
+            mqttClient.subscribe("flights/#") { topic, message ->
                 Log.d("MQTT", "Messaggio ricevuto su $topic: ${message.toString()}")
             }
 
