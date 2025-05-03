@@ -127,6 +127,7 @@ class MainActivity : ComponentActivity() {
         } else {
             snapshot.filter { id ->
                 flightsData[id]?.let { info ->
+                    info.optString("airport").contains(filter, true) ||
                     info.optString("destination").contains(filter, true) ||
                             info.optString("time").contains(filter, true) ||
                             (info.optJSONArray("flight_number")?.let { arr ->
@@ -170,11 +171,15 @@ class MainActivity : ComponentActivity() {
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
 
                 TextView(this@MainActivity).apply {
-                    text = info.optString("destination")
+                    // read airport + destination
+                    val airport = info.optString("airport", "").uppercase()
+                    val dest    = info.optString("destination", "")
+                    text = "$airport - $dest"
                     setTextColor(Color.WHITE)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
                     layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
                 }.also(::addView)
+
 
                 TextView(this@MainActivity).apply {
                     text = info.optString("time")
