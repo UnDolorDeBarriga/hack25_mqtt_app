@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
 
     private fun connectAndSubscribe() {
         val brokerUrl = "tcp://192.168.71.147:18830"
-        val clientId  = MqttClient.generateClientId()
+        val clientId = MqttClient.generateClientId()
 
         try {
             mqttClient = MqttClient(brokerUrl, clientId, MemoryPersistence())
@@ -113,10 +113,14 @@ class MainActivity : ComponentActivity() {
                 isClickable = true
                 isFocusable = true
                 setOnClickListener {
-                    startActivity(Intent(this@MainActivity, FlightDetailActivity::class.java).apply {
-                        putExtra("flight_id", flightId)
-                        putExtra("flight_details", info.toString())
-                    })
+                    startActivity(
+                        Intent(
+                            this@MainActivity,
+                            FlightDetailActivity::class.java
+                        ).apply {
+                            putExtra("flight_id", flightId)
+                            putExtra("flight_details", info.toString())
+                        })
                 }
             }
 
@@ -232,6 +236,7 @@ class MainActivity : ComponentActivity() {
             renderFlightCards()
         }
     }
+
     // Helpers to convert dp to px
     private fun dp(dp: Int): Int =
         (dp * resources.displayMetrics.density).toInt()

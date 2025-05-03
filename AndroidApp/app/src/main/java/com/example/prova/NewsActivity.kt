@@ -1,5 +1,6 @@
 package com.example.prova
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -84,8 +85,8 @@ class NewsActivity : ComponentActivity() {
 
     /** Creates and appends a single card for one news item */
     private fun addNewsCard(parent: LinearLayout, item: JSONObject) {
-        val title       = item.optString("Title",       "No Title")
-        val time        = item.optString("Time",        "")
+        val title = item.optString("Title", "No Title")
+        val time = item.optString("Time", "")
         val description = item.optString("Description", "")
 
         val card = MaterialCardView(this).apply {
@@ -93,38 +94,45 @@ class NewsActivity : ComponentActivity() {
                 it.setMargins(dp(8), dp(8), dp(8), dp(8))
             }
             radius = dpF(8)
-            setCardBackgroundColor(0xFFFFFFFF.toInt())
-            setContentPadding(dp(16), dp(16), dp(16), dp(16))
+            setCardBackgroundColor(Color.parseColor("#6200EE"))
+            setContentPadding(dp(16), dp(24), dp(16), dp(16))
         }
 
-        // Title + Time row
-        val header = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        // Container for title and description
+        val content = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
         }
+
+        // Title
         TextView(this).apply {
             text = title
-            textSize = 18f
-            setPadding(0, 0, dp(8), 0)
-            setTextColor(0xFF000000.toInt())
-            layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
-        }.also { header.addView(it) }
-        TextView(this).apply {
-            text = time
-            textSize = 14f
-            setTextColor(0xFF555555.toInt())
-            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-        }.also { header.addView(it) }
-        card.addView(header)
+            textSize = 20f
+            setTextColor(0xFFFFFFFF.toInt())
+            setPadding(0, 0, 0, dp(4))
+        }.also { content.addView(it) }
 
         // Description
         TextView(this).apply {
             text = description
             textSize = 16f
-            setPadding(0, dp(8), 0, 0)
-            setTextColor(0xFF333333.toInt())
-        }.also { card.addView(it) }
+            setTextColor(0xFFFFFFFF.toInt())
+        }.also { content.addView(it) }
 
+        // Header row: content (title + description) and time
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        }
+        header.addView(content)
+        TextView(this).apply {
+            text = time
+            textSize = 14f
+            setTextColor(0xFFFFFFFF.toInt())
+            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
+        }.also { header.addView(it) }
+
+        card.addView(header)
         parent.addView(card)
     }
 
