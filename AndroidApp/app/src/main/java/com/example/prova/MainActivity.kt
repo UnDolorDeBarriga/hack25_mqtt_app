@@ -31,6 +31,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
+import kotlin.printStackTrace
 
 class MainActivity : ComponentActivity() {
     private lateinit var mqttClient: MqttClient
@@ -57,8 +58,13 @@ class MainActivity : ComponentActivity() {
                 password = "user".toCharArray()
             }
 
-            mqttClient.connect(options)
-            Log.d("MQTT", "Connected to $brokerUrl")
+            try {
+                mqttClient.connect(options)
+                Log.d("MQTT", "Connected to $brokerUrl")
+            } catch (e: MqttException) {
+                Log.e("MQTT", "Connection failed: ${e.message}")
+                e.printStackTrace()
+            }
 
             // Subscription
             mqttClient.subscribe("flights/#") { topic, message ->
