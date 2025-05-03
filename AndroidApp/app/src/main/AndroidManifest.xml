@@ -16,14 +16,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Prova"
         tools:targetApi="31">
+        <activity
+            android:name=".FlightDetailActivity"
+            android:exported="false" />
+
         <service
             android:name="org.eclipse.paho.android.service.MqttService"
-            android:exported="false"/>
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.Prova">
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -1,5 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.Prova" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Prova" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Use android: attributes for core theming -->
+        <item name="android:colorBackground">@color/black</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <!-- If you want a colored ActionBar / accent: -->
+        <item name="colorPrimary">@color/purple_700</item>
+        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorAccent">@color/purple_700</item>
+    </style>
 </resources>

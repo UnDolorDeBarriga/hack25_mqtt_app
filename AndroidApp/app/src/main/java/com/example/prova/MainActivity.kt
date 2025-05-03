@@ -1,5 +1,6 @@
 package com.example.prova
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
@@ -97,9 +98,13 @@ class MainActivity : ComponentActivity() {
                                     } ?: "No info for $flight"
 
                                     Log.d("FlightClick", message)
-                                }
-                            }
 
+                                    val intent = Intent(context, FlightDetailActivity::class.java)
+                                    intent.putExtra("flight_id", flight) // <--- ¡¡ESTO CAMBIA!!
+                                    startActivity(intent)
+                                }
+
+                            }
                             flightsContainer.addView(button)
                         }
                     }
