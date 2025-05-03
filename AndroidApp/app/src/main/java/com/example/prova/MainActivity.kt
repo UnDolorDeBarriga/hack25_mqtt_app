@@ -6,78 +6,77 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.LinearLayout
-import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
-import org.eclipse.paho.client.mqttv3.MqttClient
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions
-import org.eclipse.paho.client.mqttv3.MqttException
-import org.eclipse.paho.client.mqttv3.MqttMessage
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import org.eclipse.paho.client.mqttv3.*
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONException
 import org.json.JSONObject
+import androidx.appcompat.app.AppCompatActivity
 
-class MainActivity : ComponentActivity() {
+
+class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+
     private lateinit var mqttClient: MqttClient
+    private lateinit var googleMap: GoogleMap
+    val flights = mutableListOf<String>()
+    val flightsData = mutableMapOf<String, JSONObject>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         setContentView(R.layout.activity_main)
 
-
         connect(this)
-        // publish("test/topic", "Hello from Android!")
+
+        val mapFragment = supportFragmentManager
+            .findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
     }
 
-    val flights = mutableListOf<String>()
-    val flightsData = mutableMapOf<String, JSONObject>()
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+
+        // Aggiungiamo un marker finto (es: Roma)
+        val exampleLocation = LatLng(41.9028, 12.4964)
+        googleMap.addMarker(MarkerOptions().position(exampleLocation).title("Example Marker"))
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(exampleLocation, 10f))
+    }
 
     fun connect(context: android.content.Context) {
         val brokerUrl = "tcp://192.168.71.147:1883"
-
         val clientId = MqttClient.generateClientId()
 
         try {
             mqttClient = MqttClient(brokerUrl, clientId, MemoryPersistence())
-
             val options = MqttConnectOptions().apply {
                 isCleanSession = true
                 userName = "user"
                 password = "user".toCharArray()
             }
 
-            try {
-                mqttClient.connect(options)
-                Log.d("MQTT", "Connected to $brokerUrl")
-            } catch (e: MqttException) {
-                Log.e("MQTT", "Connection failed: ${e.message}")
-                e.printStackTrace()
-            }
-
-            // Subscription
-
+            mqttClient.connect(options)
+            Log.d("MQTT", "Connected to $brokerUrl")
 
             mqttClient.subscribe("flights/#") { topic, message ->
                 val flightId = topic.substringAfter("flights/").lowercase()
-
                 try {
                     val jsonStr = message.toString()
                     val flightInfo = JSONObject(jsonStr)
 
-                    // Add to list if not already present
                     if (!flights.contains(flightId)) {
                         flights.add(flightId)
                     }
-
-                    // Save/Update flight data
                     flightsData[flightId] = flightInfo
-                    Log.d("MQTT", "Added flight $flightId: $flightInfo")
-                    Log.d("Flights List", flights.toString())
 
                     runOnUiThread {
                         val flightsContainer = findViewById<LinearLayout>(R.id.flightsContainer)
-                        flightsContainer.removeAllViews() // Clear previous buttons
+                        flightsContainer.removeAllViews()
 
                         for (flight in flights) {
                             val button = Button(context).apply {
@@ -89,40 +88,23 @@ class MainActivity : ComponentActivity() {
 
                                 setOnClickListener {
                                     val details = flightsData[flight]
-                                    val message = details?.let {
-                                        "Flight: $flight\nTo: ${it.optString("destination")}\nTime: ${
-                                            it.optString(
-                                                "time"
-                                            )
-                                        }\nGate: ${it.optString("gate")}"
-                                    } ?: "No info for $flight"
-
-                                    Log.d("FlightClick", message)
-
                                     val intent = Intent(context, FlightDetailActivity::class.java)
-                                    intent.putExtra("flight_id", flight) // <--- ¡¡ESTO CAMBIA!!
-                                    intent.putExtra(
-                                        "flight_details",
-                                        details.toString()
-                                    ) // Pass the entire JSON object
+                                    intent.putExtra("flight_id", flight)
+                                    intent.putExtra("flight_details", details.toString())
                                     startActivity(intent)
                                 }
-
                             }
                             flightsContainer.addView(button)
                         }
                     }
 
-
                 } catch (e: JSONException) {
-                    Log.e("MQTT", "Invlaid JSON: ${e.message}")
+                    Log.e("MQTT", "Invalid JSON: ${e.message}")
                 }
-
             }
 
         } catch (e: MqttException) {
-            Log.e("MQTT", "Error in connecting: ${e.message}")
-            e.printStackTrace()
+            Log.e("MQTT", "Connection error: ${e.message}")
         }
     }
 
@@ -130,9 +112,9 @@ class MainActivity : ComponentActivity() {
         try {
             val message = MqttMessage(payload.toByteArray())
             mqttClient.publish(topic, message)
-            Log.d("MQTT", "Message published on $topic: $payload")
+            Log.d("MQTT", "Published on $topic: $payload")
         } catch (e: MqttException) {
-            Log.e("MQTT", "Error in connecting: ${e.message}")
+            Log.e("MQTT", "Publish error: ${e.message}")
         }
     }
 }

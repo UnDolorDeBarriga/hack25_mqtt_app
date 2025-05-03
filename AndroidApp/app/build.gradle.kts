@@ -64,4 +64,5 @@ dependencies {
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     implementation("org.json:json:20240303")
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
 }
