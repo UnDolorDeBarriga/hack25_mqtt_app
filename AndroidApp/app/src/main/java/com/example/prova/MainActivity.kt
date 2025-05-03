@@ -1,6 +1,5 @@
 package com.example.prova
 
-import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -21,8 +20,10 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONException
 import org.json.JSONObject
 import com.google.android.material.bottomappbar.BottomAppBar
+import android.content.Intent
 import androidx.appcompat.app.AlertDialog
 import android.widget.EditText
+import android.widget.Toast
 
 class MainActivity : ComponentActivity() {
     private lateinit var mqttClient: MqttClient
@@ -34,6 +35,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
+        val bottomBar = findViewById<BottomAppBar>(R.id.bottomAppBar)
+        bottomBar.setNavigationOnClickListener {
+            // This is called whenever you tap the magnifier
+            showSearchDialog()
+        }
+
+        bottomBar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_news -> {
+                    // Fire your NewsActivity
+                    startActivity(Intent(this, NewsActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
         // Star FAB opens link
         findViewById<FloatingActionButton>(R.id.fabStar).setOnClickListener {
             val url = "http://192.168.71.147:8000/mouseketool.mp4"
@@ -172,6 +189,49 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun showSearchDialog() {
+        // Create the input field
+        val input = EditText(this).apply {
+            hint = "Destination, time or flight#"
+            setPadding(dp(16), dp(8), dp(16), dp(8))
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Search flights")
+            .setView(input)
+            .setPositiveButton("Search") { dialog, _ ->
+                val query = input.text.toString().trim()
+                if (query.isNotEmpty()) {
+                    performSearch(query)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /**
+     * Filters your flightsData by the query, then re‐renders only matching cards.
+     */
+    private fun performSearch(query: String) {
+        // Find all flightIds whose JSON matches the query
+        val results = flightsData.filter { (_, json) ->
+            json.optString("destination").contains(query, ignoreCase = true) ||
+                    json.optString("time").contains(query, ignoreCase = true) ||
+                    json.optJSONArray("flight_number")?.let { arr ->
+                        (0 until arr.length()).any { i -> arr.optString(i).equals(query, true) }
+                    } == true
+        }.keys
+
+        if (results.isEmpty()) {
+            Toast.makeText(this, "No flights found for “$query”", Toast.LENGTH_SHORT).show()
+        } else {
+            // Replace your flights list and re‐draw
+            flights.clear()
+            flights.addAll(results)
+            renderFlightCards()
+        }
+    }
     // Helpers to convert dp to px
     private fun dp(dp: Int): Int =
         (dp * resources.displayMetrics.density).toInt()

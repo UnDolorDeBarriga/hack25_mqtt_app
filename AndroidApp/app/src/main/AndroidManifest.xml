@@ -17,6 +17,10 @@
         android:theme="@style/Theme.Prova"
         tools:targetApi="31">
         <activity
+            android:name=".NewsActivity"
+            android:exported="true"
+            android:label="News"/>
+        <activity
             android:name=".FlightDetailActivity"
             android:exported="false" />
 
