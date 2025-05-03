@@ -1,50 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout
-xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:background="#000000">
-
-<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_above="@id/bottomAppBar">
+    android:background="#000000">
 
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    android:fillViewport="true">
-
+    <!-- Container that holds search + list -->
     <LinearLayout
-        android:id="@+id/flightsContainer"
+        android:id="@+id/contentLayout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="16dp">
+
+        <!-- 1) Inline search bar (hidden initially) -->
+        <EditText
+            android:id="@+id/searchEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search flights…"
+            android:inputType="text"
+            android:visibility="gone"
+            android:backgroundTint="#333333"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA"
+            android:padding="12dp"
+            android:imeOptions="actionDone"/>
+
+        <!-- 2) Scrollable flight cards -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:id="@+id/flightsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+
+        </ScrollView>
+    </LinearLayout>
+
+    <!-- BottomAppBar + FAB unchanged -->
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingBottom="16dp"
-        android:paddingTop="16dp" />
-</ScrollView>
+        android:layout_gravity="bottom"
+        android:backgroundTint="#333333"
+        app:navigationIcon="@android:drawable/ic_menu_search"
+        app:menu="@menu/bottom_bar_menu"
+        app:hideOnScroll="true"
+        app:fabCradleMargin="16dp"
+        app:fabCradleRoundedCornerRadius="20dp"/>
 
-<com.google.android.material.bottomappbar.BottomAppBar
-    android:id="@+id/bottomAppBar"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom"
-    android:backgroundTint="#333333"
-
-    app:navigationIcon="@android:drawable/ic_menu_search"
-    app:menu="@menu/bottom_bar_menu"
-
-    app:hideOnScroll="true"
-    app:fabCradleMargin="16dp"
-    app:fabCradleRoundedCornerRadius="20dp"/>
-
-<com.google.android.material.floatingactionbutton.FloatingActionButton
-    android:id="@+id/fabStar"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom|center"
-    android:layout_marginBottom="16dp"
-    app:srcCompat="@android:drawable/btn_star_big_on"
-    app:tint="@android:color/white"
-    android:contentDescription="Star Button" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabStar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:layout_marginBottom="16dp"
+        app:srcCompat="@android:drawable/btn_star_big_on"
+        app:tint="@android:color/white"
+        android:contentDescription="Star Button"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
