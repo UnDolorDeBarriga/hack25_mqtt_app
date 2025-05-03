@@ -1,9 +1,11 @@
 package com.example.prova
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.widget.TextView
+import android.widget.Button
+import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -11,13 +13,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
-import org.json.JSONObject
 import org.json.JSONException
-import android.graphics.Color
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.Toast
-import kotlin.printStackTrace
+import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
     private lateinit var mqttClient: MqttClient
@@ -61,7 +58,6 @@ class MainActivity : ComponentActivity() {
             // Subscription
 
 
-
             mqttClient.subscribe("flights/#") { topic, message ->
                 val flightId = topic.substringAfter("flights/").lowercase()
 
@@ -94,13 +90,21 @@ class MainActivity : ComponentActivity() {
                                 setOnClickListener {
                                     val details = flightsData[flight]
                                     val message = details?.let {
-                                        "Flight: $flight\nTo: ${it.optString("destination")}\nTime: ${it.optString("time")}\nGate: ${it.optString("gate")}"
+                                        "Flight: $flight\nTo: ${it.optString("destination")}\nTime: ${
+                                            it.optString(
+                                                "time"
+                                            )
+                                        }\nGate: ${it.optString("gate")}"
                                     } ?: "No info for $flight"
 
                                     Log.d("FlightClick", message)
 
                                     val intent = Intent(context, FlightDetailActivity::class.java)
                                     intent.putExtra("flight_id", flight) // <--- ¡¡ESTO CAMBIA!!
+                                    intent.putExtra(
+                                        "flight_details",
+                                        details.toString()
+                                    ) // Pass the entire JSON object
                                     startActivity(intent)
                                 }
 
@@ -108,7 +112,6 @@ class MainActivity : ComponentActivity() {
                             flightsContainer.addView(button)
                         }
                     }
-
 
 
                 } catch (e: JSONException) {

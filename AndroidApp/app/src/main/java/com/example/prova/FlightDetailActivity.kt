@@ -1,11 +1,11 @@
 package com.example.prova
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import android.util.Log
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import org.json.JSONException
+import org.json.JSONObject
 
 class FlightDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,9 +14,28 @@ class FlightDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_flight_detail)
 
         val flightId = intent.getStringExtra("flight_id") ?: "Unknown"
-        val detailTextView = findViewById<TextView>(R.id.flightDetailTextView)
-        detailTextView.text = "Details for flight: $flightId"
 
-        // TODO: You can retrieve more data from the Map or intent extras here
+        val flightDetailsJson = intent.getStringExtra("flight_details") ?: "{}"
+
+        val detailTextView = findViewById<TextView>(R.id.flightDetailTextView)
+
+        try {
+            val flightDetails = JSONObject(flightDetailsJson)
+            val destination = flightDetails.optString("destination", "Unknown")
+            val time = flightDetails.optString("time", "Unknown")
+            val gate = flightDetails.optString("gate", "Unknown")
+
+            val detailsText = """
+                Flight: $flightId
+                To: $destination
+                Time: $time
+                Gate: $gate
+            """.trimIndent()
+
+            detailTextView.text = detailsText
+        } catch (e: JSONException) {
+            Log.e("FlightDetailActivity", "Invalid JSON: ${e.message}")
+            detailTextView.text = "Error loading flight details."
+        }
     }
 }
