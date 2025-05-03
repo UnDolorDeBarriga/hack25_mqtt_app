@@ -31,6 +31,8 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
+import org.json.JSONObject
+import org.json.JSONException
 import kotlin.printStackTrace
 
 class MainActivity : ComponentActivity() {
@@ -43,6 +45,9 @@ class MainActivity : ComponentActivity() {
         connect(this)
         // publish("test/topic", "Hello from Android!")
     }
+
+    val flights = mutableListOf<String>()
+    val flightsData = mutableMapOf<String, JSONObject>()
 
     fun connect(context: android.content.Context) {
         val brokerUrl = "tcp://192.168.71.147:1883"
@@ -68,7 +73,26 @@ class MainActivity : ComponentActivity() {
 
             // Subscription
             mqttClient.subscribe("flights/#") { topic, message ->
-                Log.d("MQTT", "Messaggio ricevuto su $topic: ${message.toString()}")
+                val flightId = topic.substringAfter("flights/").lowercase()
+
+                try {
+                    val jsonStr = message.toString()
+                    val flightInfo = JSONObject(jsonStr)
+
+                    // Add to list if not already present
+                    if (!flights.contains(flightId)) {
+                        flights.add(flightId)
+                    }
+
+                    // Save/Update flight data
+                    flightsData[flightId] = flightInfo
+
+                    Log.d("MQTT", "Added flight $flightId: $flightInfo")
+                    Log.d("Flights List", flights.toString())
+                } catch (e: JSONException) {
+                    Log.e("MQTT", "Invlaid JSON: ${e.message}")
+                }
+
             }
 
         } catch (e: MqttException) {
