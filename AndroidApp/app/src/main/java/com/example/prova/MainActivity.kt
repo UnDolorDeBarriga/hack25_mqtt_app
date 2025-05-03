@@ -2,6 +2,7 @@ package com.example.prova
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -11,6 +12,10 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONObject
 import org.json.JSONException
+import android.graphics.Color
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.Toast
 import kotlin.printStackTrace
 
 class MainActivity : ComponentActivity() {
@@ -53,6 +58,9 @@ class MainActivity : ComponentActivity() {
             }
 
             // Subscription
+
+
+
             mqttClient.subscribe("flights/#") { topic, message ->
                 val flightId = topic.substringAfter("flights/").lowercase()
 
@@ -67,9 +75,37 @@ class MainActivity : ComponentActivity() {
 
                     // Save/Update flight data
                     flightsData[flightId] = flightInfo
-
                     Log.d("MQTT", "Added flight $flightId: $flightInfo")
                     Log.d("Flights List", flights.toString())
+
+                    runOnUiThread {
+                        val flightsContainer = findViewById<LinearLayout>(R.id.flightsContainer)
+                        flightsContainer.removeAllViews() // Clear previous buttons
+
+                        for (flight in flights) {
+                            val button = Button(context).apply {
+                                text = flight.uppercase()
+                                textSize = 32f
+                                setTextColor(Color.WHITE)
+                                setBackgroundColor(Color.parseColor("#6200EE"))
+                                setPadding(20, 40, 20, 40)
+
+                                setOnClickListener {
+                                    val details = flightsData[flight]
+                                    val message = details?.let {
+                                        "Flight: $flight\nTo: ${it.optString("destination")}\nTime: ${it.optString("time")}\nGate: ${it.optString("gate")}"
+                                    } ?: "No info for $flight"
+
+                                    Log.d("FlightClick", message)
+                                }
+                            }
+
+                            flightsContainer.addView(button)
+                        }
+                    }
+
+
+
                 } catch (e: JSONException) {
                     Log.e("MQTT", "Invlaid JSON: ${e.message}")
                 }
