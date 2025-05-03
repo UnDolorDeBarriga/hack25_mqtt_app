@@ -40,12 +40,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         connect(this)
-        // publish("test/topic", "Hello from Android!")
+        publish("test/topic", "Hello from Android!")
     }
 
     fun connect(context: android.content.Context) {
         val brokerUrl =
-            "tcp://10.0.2.2:8000"  // 10.0.2.2 = localhost dell'host visto dall'emulatore
+            "tcp://10.0.2.2:8000"
         val clientId = MqttClient.generateClientId()
 
         try {
@@ -56,15 +56,14 @@ class MainActivity : ComponentActivity() {
             }
 
             mqttClient.connect(options)
-            Log.d("MQTT", "Connesso a $brokerUrl")
+            Log.d("MQTT", "Connected to $brokerUrl")
 
-            // Sottoscrizione
             mqttClient.subscribe("test/topic") { topic, message ->
-                Log.d("MQTT", "Messaggio ricevuto su $topic: ${message.toString()}")
+                Log.d("MQTT", "Message received on $topic: ${message.toString()}")
             }
 
         } catch (e: MqttException) {
-            Log.e("MQTT", "Errore nella connessione: ${e.message}")
+            Log.e("MQTT", "Error in connecting: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -73,24 +72,9 @@ class MainActivity : ComponentActivity() {
         try {
             val message = MqttMessage(payload.toByteArray())
             mqttClient.publish(topic, message)
-            Log.d("MQTT", "Messaggio pubblicato su $topic: $payload")
+            Log.d("MQTT", "Message published on $topic: $payload")
         } catch (e: MqttException) {
-            Log.e("MQTT", "Errore nella pubblicazione: ${e.message}")
+            Log.e("MQTT", "Error in connecting: ${e.message}")
         }
     }
-}
-
-
-@Composable
-fun ConnectionSuccess(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Connected to broker: $name SUCCESSFULLY", modifier = modifier
-    )
-}
-
-@Composable
-fun ConnectionFail(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Connected to broker: $name FAILED", modifier = modifier
-    )
 }
