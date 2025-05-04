@@ -148,36 +148,36 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-//        val sortedFlights = toShow.sortedBy { flightId ->
-//            flightsData[flightId]?.optString("time")?.let { time ->
-//                try {
-//                    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-//                    formatter.isLenient = false
-//                    formatter.parse(time)?.time
-//                } catch (e: Exception) {
-//                    Log.e("RENDER", "Errore nel parsing del tempo: $time")
-//                    null
-//                }
-//            } ?: Long.MAX_VALUE
-//        }
+        val sortedFlights = toShow.sortedBy { flightId ->
+            flightsData[flightId]?.optString("time")?.let { time ->
+                try {
+                    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    formatter.isLenient = false
+                    formatter.parse(time)?.time
+                } catch (e: Exception) {
+                    Log.e("RENDER", "Errore nel parsing del tempo: $time")
+                    null
+                }
+            } ?: Long.MAX_VALUE
+        }
 
         // Build cards
         sortedFlights.forEach { flightId ->
             val info = flightsData[flightId]!!
 
             // Extract fields
-            val airport    = info.optString("airport", "").uppercase()
-            val dest       = info.optString("destination", "")
-            val status     = info.optString("departure_status", "")
+            val airport = info.optString("airport", "").uppercase()
+            val dest = info.optString("destination", "")
+            val status = info.optString("departure_status", "")
             val normalTime = info.optString("time", "")
-            val delay      = info.optString("delay", "")
+            val delay = info.optString("delay", "")
 
             // Determine cancellation or delay
             val isCanceled = status.equals("Cancelat", true)
-            val isDelayed  = status.equals("Retardat", true) && delay.isNotBlank()
+            val isDelayed = status.equals("Retardat", true) && delay.isNotBlank()
 
             // choose display time
-            val showTime  = if (isDelayed) delay else normalTime
+            val showTime = if (isDelayed) delay else normalTime
             val timeColor = if (isDelayed) Color.RED else Color.WHITE
 
             // Card root
@@ -207,21 +207,7 @@ class MainActivity : ComponentActivity() {
                 orientation = LinearLayout.VERTICAL
                 setPadding(dp(16), dp(16), dp(16), dp(16))
             }
-
-            // Extract fields
-            val airport = info.optString("airport", "").uppercase()
-            val dest = info.optString("destination", "")
-            val status = info.optString("departure_status", "")
-            val normalTime = info.optString("time", "")
-            val delay = info.optString("delay", "")
-            val showTime =
-                if (status.equals("Retardat", true) && delay.isNotBlank()) delay else normalTime
-            val timeColor = if (status.equals(
-                    "Retardat",
-                    true
-                ) && delay.isNotBlank()
-            ) Color.RED else Color.WHITE
-
+            
             // Top row: airport – destination, then time or delay (red if delayed)
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
@@ -260,9 +246,10 @@ class MainActivity : ComponentActivity() {
                             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                             setBackgroundColor(Color.WHITE)
                             setPadding(dp(12), dp(4), dp(12), dp(4))
-                            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).also {
-                                it.rightMargin = dp(8)
-                            }
+                            layoutParams =
+                                LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).also {
+                                    it.rightMargin = dp(8)
+                                }
                         }.also(::addView)
                     }
                     if (arr.length() > 3) {
