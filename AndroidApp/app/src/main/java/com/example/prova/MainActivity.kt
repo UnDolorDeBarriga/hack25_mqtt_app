@@ -27,6 +27,9 @@ import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONException
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Locale
+import kotlin.text.get
 
 class MainActivity : ComponentActivity() {
     private lateinit var mqttClient: MqttClient
@@ -57,6 +60,7 @@ class MainActivity : ComponentActivity() {
                     startActivity(Intent(this, NewsActivity::class.java))
                     true
                 }
+
                 else -> false
             }
         }
@@ -123,9 +127,9 @@ class MainActivity : ComponentActivity() {
                 flightsData[flightId]?.let { info ->
                     // 1) Airport / Destination / Time
                     val matchesTextFields =
-                        info.optString("airport",    "").contains(filter, true) ||
-                                info.optString("destination","").contains(filter, true) ||
-                                info.optString("time",       "").contains(filter, true)
+                        info.optString("airport", "").contains(filter, true) ||
+                                info.optString("destination", "").contains(filter, true) ||
+                                info.optString("time", "").contains(filter, true)
 
                     // 2) Any flight_number contains the filter
                     val arr = info.optJSONArray("flight_number")
@@ -139,8 +143,21 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+//        val sortedFlights = toShow.sortedBy { flightId ->
+//            flightsData[flightId]?.optString("time")?.let { time ->
+//                try {
+//                    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+//                    formatter.isLenient = false
+//                    formatter.parse(time)?.time
+//                } catch (e: Exception) {
+//                    Log.e("RENDER", "Errore nel parsing del tempo: $time")
+//                    null
+//                }
+//            } ?: Long.MAX_VALUE
+//        }
+
         // Build cards
-        toShow.forEach { flightId ->
+        sortedFlights.forEach { flightId ->
             val info = flightsData[flightId]!!
 
             // Card root
@@ -168,13 +185,18 @@ class MainActivity : ComponentActivity() {
             }
 
             // Extract fields
-            val airport     = info.optString("airport", "").uppercase()
-            val dest        = info.optString("destination", "")
-            val status      = info.optString("departure_status", "")
-            val normalTime  = info.optString("time", "")
-            val delay       = info.optString("delay", "")
-            val showTime    = if (status.equals("Retardat", true) && delay.isNotBlank()) delay else normalTime
-            val timeColor   = if (status.equals("Retardat", true) && delay.isNotBlank()) Color.RED else Color.WHITE
+            val airport = info.optString("airport", "").uppercase()
+            val dest = info.optString("destination", "")
+            val status = info.optString("departure_status", "")
+            val normalTime = info.optString("time", "")
+            val delay = info.optString("delay", "")
+            val showTime =
+                if (status.equals("Retardat", true) && delay.isNotBlank()) delay else normalTime
+            val timeColor = if (status.equals(
+                    "Retardat",
+                    true
+                ) && delay.isNotBlank()
+            ) Color.RED else Color.WHITE
 
             // Top row: airport – destination, then time or delay (red if delayed)
             LinearLayout(this).apply {
@@ -234,6 +256,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // dp → px helpers
-    private fun dp(value: Int): Int  = (value * resources.displayMetrics.density).toInt()
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
     private fun dpF(value: Int): Float = value * resources.displayMetrics.density
 }
