@@ -10,11 +10,17 @@
     android:padding="24dp"
     android:background="#111">
 
+    <LinearLayout
+        android:id="@+id/flightDetailContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"/>
+
     <TextView
         android:id="@+id/flightDetailTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Default detail text"
         android:textColor="#ffffff"
         android:textSize="20sp"
         app:layout_constraintTop_toTopOf="parent"
