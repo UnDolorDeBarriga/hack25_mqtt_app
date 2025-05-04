@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        setTheme(R.style.Theme_Prova)
         setContentView(R.layout.activity_main)
 
         // 1) Grab views

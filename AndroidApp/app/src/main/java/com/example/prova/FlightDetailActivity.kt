@@ -149,10 +149,9 @@ class FlightDetailActivity : AppCompatActivity() {
 
             // 5) “Flight delayed n minutes” line
             if (isDelayed) {
-
                 val delayMinutes = if (delay.contains(":")) {
-                        val (h, m) = delay.split(":", limit = 2)
-                        (h.toIntOrNull() ?: 0) * 60 + (m.toIntOrNull() ?: 0)
+                    val (h, m) = delay.split(":", limit = 2)
+                    (h.toIntOrNull() ?: 0) * 60 + (m.toIntOrNull() ?: 0)
                 } else {
                     delay.toIntOrNull() ?: 0
                 }
@@ -166,7 +165,7 @@ class FlightDetailActivity : AppCompatActivity() {
                 // robust parsing: split on “:” then fallback
 
                 TextView(this).apply {
-                    text = "Flight delayed $delayMinutes minutes"
+                    text = "Flight delayed $delayedM minutes"
                     setTextColor(Color.RED)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                     gravity = Gravity.CENTER_HORIZONTAL
