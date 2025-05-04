@@ -27,6 +27,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONException
+import android.view.MotionEvent
 import org.json.JSONObject
 
 class MainActivity : ComponentActivity() {
@@ -42,6 +43,32 @@ class MainActivity : ComponentActivity() {
         // 1) Grab views
         val bottomBar = findViewById<BottomAppBar>(R.id.bottomAppBar)
         val searchInput = findViewById<EditText>(R.id.searchEditText)
+
+        val clearIconRes = android.R.drawable.ic_menu_close_clear_cancel
+        fun updateClearIcon() {
+            val show = searchInput.text.isNotEmpty()
+            searchInput.setCompoundDrawablesWithIntrinsicBounds(
+                0, 0,
+                if (show) clearIconRes else 0,
+                0
+            )
+        }
+        // initialize
+        updateClearIcon()
+
+        searchInput.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP && searchInput.text.isNotEmpty()) {
+                // get bounds of the drawable
+                val drawable = searchInput.compoundDrawables[2] ?: return@setOnTouchListener false
+                if (event.x >= (searchInput.width - searchInput.paddingRight - drawable.bounds.width())) {
+                    searchInput.text.clear()
+                    renderFlightCards("")      // reset filter
+                    updateClearIcon()
+                    return@setOnTouchListener true
+                }
+            }
+            false
+        }
 
         // 2) Show inline search bar & keyboard on magnifier tap
         bottomBar.setNavigationOnClickListener {
@@ -65,7 +92,9 @@ class MainActivity : ComponentActivity() {
         // 4) Real-time filtering as user types
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun afterTextChanged(s: Editable?) {}
+            override fun afterTextChanged(s: Editable?) {
+                updateClearIcon()
+            }
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 renderFlightCards(filter = s?.toString().orEmpty())
             }
