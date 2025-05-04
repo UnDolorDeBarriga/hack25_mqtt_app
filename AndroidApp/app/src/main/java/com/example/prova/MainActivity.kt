@@ -3,6 +3,7 @@ package com.example.prova
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Paint
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -112,6 +113,14 @@ class MainActivity : ComponentActivity() {
         val container = findViewById<LinearLayout>(R.id.flightsContainer)
         container.removeAllViews()
 
+        // ensure bottom padding so last card isn’t hidden
+        container.setPadding(
+            container.paddingLeft,
+            container.paddingTop,
+            container.paddingRight,
+            dp(80)
+        )
+
         // Snapshot to avoid concurrent modification
         val snapshot = flights.toList()
 
@@ -121,18 +130,14 @@ class MainActivity : ComponentActivity() {
         } else {
             snapshot.filter { flightId ->
                 flightsData[flightId]?.let { info ->
-                    // 1) Airport / Destination / Time
                     val matchesTextFields =
-                        info.optString("airport",    "").contains(filter, true) ||
-                                info.optString("destination","").contains(filter, true) ||
-                                info.optString("time",       "").contains(filter, true)
+                        info.optString("airport", "").contains(filter, true) ||
+                                info.optString("destination", "").contains(filter, true) ||
+                                info.optString("time", "").contains(filter, true)
 
-                    // 2) Any flight_number contains the filter
                     val arr = info.optJSONArray("flight_number")
                     val matchesNumber = (0 until (arr?.length() ?: 0))
-                        .any { i ->
-                            arr!!.optString(i).contains(filter, true)
-                        }
+                        .any { i -> arr!!.optString(i).contains(filter, true) }
 
                     matchesTextFields || matchesNumber
                 } ?: false
@@ -143,13 +148,32 @@ class MainActivity : ComponentActivity() {
         toShow.forEach { flightId ->
             val info = flightsData[flightId]!!
 
+            // Extract fields
+            val airport    = info.optString("airport", "").uppercase()
+            val dest       = info.optString("destination", "")
+            val status     = info.optString("departure_status", "")
+            val normalTime = info.optString("time", "")
+            val delay      = info.optString("delay", "")
+
+            // Determine cancellation or delay
+            val isCanceled = status.equals("Cancelat", true)
+            val isDelayed  = status.equals("Retardat", true) && delay.isNotBlank()
+
+            // choose display time
+            val showTime  = if (isDelayed) delay else normalTime
+            val timeColor = if (isDelayed) Color.RED else Color.WHITE
+
             // Card root
             val card = MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).also {
                     it.setMargins(dp(4), dp(8), dp(4), dp(16))
                 }
                 radius = dpF(12)
-                setCardBackgroundColor(Color.parseColor("#6200EE"))
+                // salmon/red if canceled, purple otherwise
+                setCardBackgroundColor(
+                    if (isCanceled) Color.parseColor("#ad2a51")
+                    else Color.parseColor("#6200EE")
+                )
                 isClickable = true
                 setOnClickListener {
                     startActivity(
@@ -167,16 +191,7 @@ class MainActivity : ComponentActivity() {
                 setPadding(dp(16), dp(16), dp(16), dp(16))
             }
 
-            // Extract fields
-            val airport     = info.optString("airport", "").uppercase()
-            val dest        = info.optString("destination", "")
-            val status      = info.optString("departure_status", "")
-            val normalTime  = info.optString("time", "")
-            val delay       = info.optString("delay", "")
-            val showTime    = if (status.equals("Retardat", true) && delay.isNotBlank()) delay else normalTime
-            val timeColor   = if (status.equals("Retardat", true) && delay.isNotBlank()) Color.RED else Color.WHITE
-
-            // Top row: airport – destination, then time or delay (red if delayed)
+            // Top row: airport – destination & time/delay
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
@@ -192,17 +207,19 @@ class MainActivity : ComponentActivity() {
                     text = showTime
                     setTextColor(timeColor)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+                    if (isCanceled) {
+                        paintFlags = paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+                    }
                 }.also(::addView)
 
             }.also(vertical::addView)
 
-            // Bottom row: flight numbers (≤3 then “…”)
+            // Flight numbers row
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).also {
                     it.topMargin = dp(8)
                 }
-
                 info.optJSONArray("flight_number")?.let { arr ->
                     val count = minOf(arr.length(), 3)
                     for (i in 0 until count) {
@@ -212,8 +229,9 @@ class MainActivity : ComponentActivity() {
                             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
                             setBackgroundColor(Color.WHITE)
                             setPadding(dp(12), dp(4), dp(12), dp(4))
-                            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-                                .also { it.rightMargin = dp(8) }
+                            layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).also {
+                                it.rightMargin = dp(8)
+                            }
                         }.also(::addView)
                     }
                     if (arr.length() > 3) {
@@ -234,6 +252,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // dp → px helpers
-    private fun dp(value: Int): Int  = (value * resources.displayMetrics.density).toInt()
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
     private fun dpF(value: Int): Float = value * resources.displayMetrics.density
 }
