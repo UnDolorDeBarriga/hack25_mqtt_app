@@ -85,6 +85,7 @@ class FlightDetailActivity : AppCompatActivity() {
         // Determine state
         val isCanceled = status.equals("Cancelat", true)
         val isDelayed  = status.equals("Retardat", true) && delay.isNotBlank()
+        val isDeparted = status.equals("Ha sortit", true)
 
         // 3) Canceled or delayed header
         if (isCanceled) {
@@ -106,10 +107,19 @@ class FlightDetailActivity : AppCompatActivity() {
                 gravity = Gravity.CENTER_HORIZONTAL
                 setPadding(0, dp(8), 0, dp(16))
             }.also(container::addView)
+        } else if (isDeparted){
+            TextView(this).apply {
+                text = "FLIGHT DEPARTED"
+                setTextColor(Color.parseColor("#134b94"))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 25f)
+                setTypeface(typeface, Typeface.BOLD)
+                gravity = Gravity.CENTER_HORIZONTAL
+                setPadding(0, dp(8), 0, dp(16))
+            }.also(container::addView)
         }
 
         // 4) Time row (if not canceled)
-        if (!isCanceled) {
+        if (!isCanceled && !isDeparted) {
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_HORIZONTAL
@@ -156,7 +166,7 @@ class FlightDetailActivity : AppCompatActivity() {
                 // robust parsing: split on “:” then fallback
 
                 TextView(this).apply {
-                    text = "Flight delayed $delayedM minutes"
+                    text = "Flight delayed $delayMinutes minutes"
                     setTextColor(Color.RED)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                     gravity = Gravity.CENTER_HORIZONTAL

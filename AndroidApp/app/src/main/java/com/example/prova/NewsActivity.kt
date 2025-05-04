@@ -115,7 +115,7 @@ class NewsActivity : AppCompatActivity() {
             }
             radius = dpF(8)
             useCompatPadding = true
-            setCardBackgroundColor(Color.parseColor("#6200EE"))
+            setCardBackgroundColor(Color.parseColor("#134b94"))
             setContentPadding(dp(24), dp(24), dp(24), dp(24))
         }
 

@@ -29,7 +29,8 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONException
 import android.view.MotionEvent
 import org.json.JSONObject
-
+import java.text.SimpleDateFormat
+import java.util.Locale
 class MainActivity : ComponentActivity() {
     private lateinit var mqttClient: MqttClient
     private val flights = mutableListOf<String>()
@@ -201,10 +202,11 @@ class MainActivity : ComponentActivity() {
             // Determine cancellation or delay
             val isCanceled = status.equals("Cancelat", true)
             val isDelayed = status.equals("Retardat", true) && delay.isNotBlank()
+            val isDeparted = status.equals("Ha sortit", true)
 
             // choose display time
             val showTime = if (isDelayed) delay else normalTime
-            val timeColor = if (isDelayed) Color.RED else Color.WHITE
+            val timeColor = if (isDelayed) Color.RED else if (isDeparted) Color.BLACK else Color.WHITE
 
             // Card root
             val card = MaterialCardView(this).apply {
@@ -215,7 +217,8 @@ class MainActivity : ComponentActivity() {
                 // salmon/red if canceled, purple otherwise
                 setCardBackgroundColor(
                     if (isCanceled) Color.parseColor("#ad2a51")
-                    else Color.parseColor("#6200EE")
+                    else if (isDeparted) Color.parseColor("#134b94")
+                    else Color.parseColor("#3d3b40")
                 )
                 isClickable = true
                 setOnClickListener {
@@ -269,7 +272,7 @@ class MainActivity : ComponentActivity() {
                             text = arr.optString(i)
                             setTextColor(Color.BLACK)
                             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                            setBackgroundColor(Color.WHITE)
+                            setBackgroundColor(Color.parseColor("#c3bfc9"))
                             setPadding(dp(12), dp(4), dp(12), dp(4))
                             layoutParams =
                                 LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).also {
@@ -282,7 +285,7 @@ class MainActivity : ComponentActivity() {
                             text = "…"
                             setTextColor(Color.BLACK)
                             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                            setBackgroundColor(Color.WHITE)
+                            setBackgroundColor(Color.parseColor("#c3bfc9"))
                             setPadding(dp(12), dp(4), dp(12), dp(4))
                         }.also(::addView)
                     }
