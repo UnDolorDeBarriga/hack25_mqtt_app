@@ -86,38 +86,61 @@ class FlightDetailActivity : AppCompatActivity() {
         // 2) If delayed, show bold red "RETARDAT"
         if (status.equals("Retardat", true) && delay.isNotBlank()) {
             TextView(this).apply {
-                text = "RETARDAT"
+                text = "FLIGHT DELAYED"
                 setTextColor(Color.RED)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 25f)
                 setTypeface(typeface, Typeface.BOLD)
-                setPadding(0, 0, 0, dp(16))
+                setPadding(0, dp(8), 0, dp(16))
                 gravity = Gravity.CENTER_HORIZONTAL
             }.also(container::addView)
         }
 
-        // 3) Time (always) and optional delay in red
+        // 3) Time (always) and delay time (if delayed), side by side
         LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
         }.also { timeLayout ->
-            // Scheduled time
+
+            // a) Scheduled time
             TextView(this).apply {
                 text = time
                 setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 25f)
             }.also(timeLayout::addView)
 
-            // Delay if present
+            // b) Delay time, in red, if flight is delayed
             if (status.equals("Retardat", true) && delay.isNotBlank()) {
                 TextView(this).apply {
-                    text = " $delay"
+                    text = " $delay"  // leading space for separation
                     setTextColor(Color.RED)
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 25f)
                 }.also(timeLayout::addView)
             }
 
+            // Now add the complete timeLayout (with 1 or 2 children)
             container.addView(timeLayout)
+        }
+
+// 4) “Flight delayed n minutes” below, only if delayed
+        if (status.equals("Retardat", true) && delay.isNotBlank()) {
+            // parse delay into minutes
+            val delayMinutes = if (delay.contains(":")) {
+                val (h, m) = delay.split(":", limit = 2)
+                (h.toIntOrNull() ?: 0) * 60 + (m.toIntOrNull() ?: 0)
+            } else {
+                delay.toIntOrNull() ?: 0
+            }
+
+            TextView(this).apply {
+                text = "Flight delayed $delayMinutes minutes"
+                setTextColor(Color.RED)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                gravity = Gravity.CENTER_HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).also {
+                    it.topMargin = dp(8)
+                }
+            }.also(container::addView)
         }
 
         // 4) Flight numbers (bold, centered)
@@ -127,9 +150,9 @@ class FlightDetailActivity : AppCompatActivity() {
                 TextView(this).apply {
                     text = num
                     setTextColor(Color.LTGRAY)
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
                     setTypeface(typeface, Typeface.BOLD)
-                    setPadding(0, 0, 0, dp(8))
+                    setPadding(0, dp(8), 0, dp(8))
                     gravity = Gravity.CENTER_HORIZONTAL
                 }.also(container::addView)
             }
@@ -139,17 +162,10 @@ class FlightDetailActivity : AppCompatActivity() {
         TextView(this).apply {
             text = "Gate: $gate"
             setTextColor(Color.WHITE)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
             setPadding(0, dp(16), 0, 0)
             gravity = Gravity.CENTER_HORIZONTAL
-
-            // Gradient text effect
-            paint.shader = LinearGradient(
-                0f, 0f, 0f, textSize,
-                intArrayOf(Color.CYAN, Color.BLUE),
-                null,
-                Shader.TileMode.CLAMP
-            )
+            setTextColor(Color.parseColor("#6200EE"))
         }.also(container::addView)
     }
 
