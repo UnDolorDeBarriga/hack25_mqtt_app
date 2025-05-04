@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
 
         // 1) Grab views
-        val bottomBar   = findViewById<BottomAppBar>(R.id.bottomAppBar)
+        val bottomBar = findViewById<BottomAppBar>(R.id.bottomAppBar)
         val searchInput = findViewById<EditText>(R.id.searchEditText)
 
         // 2) Show inline search bar & keyboard on magnifier tap
@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
                     startActivity(Intent(this, NewsActivity::class.java))
                     true
                 }
+
                 else -> false
             }
         }
@@ -81,7 +82,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun connectAndSubscribe() {
-        val brokerUrl = "tcp://192.168.71.147:18830"
+        val brokerUrl = "tcp://192.168.71.147:1883"
         mqttClient = MqttClient(brokerUrl, MqttClient.generateClientId(), MemoryPersistence())
 
         try {
@@ -152,10 +153,16 @@ class MainActivity : ComponentActivity() {
                 setCardBackgroundColor(Color.parseColor("#6200EE"))
                 isClickable = true
                 setOnClickListener {
-                    startActivity(Intent(this@MainActivity, FlightDetailActivity::class.java).apply {
-                        putExtra("flight_id", flightId)
-                        putExtra("flight_details", info.toString())
-                    })
+                    startActivity(
+                        Intent(
+                            this@MainActivity,
+                            FlightDetailActivity::class.java
+                        ).apply {
+                            putExtra("flight_id", flightId)
+                            putExtra("flight_details", info.toString())
+                            Log.e("FlightDetailActivity", "Flight ID: $flightId")
+                            Log.e("FlightDetailActivity", "Flight Details: ${info.toString()}")
+                        })
                 }
             }
 
@@ -226,6 +233,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // dp → px helpers
-    private fun dp(dp: Int): Int  = (dp * resources.displayMetrics.density).toInt()
+    private fun dp(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
     private fun dpF(dp: Int): Float = dp * resources.displayMetrics.density
 }
