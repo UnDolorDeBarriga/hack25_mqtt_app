@@ -24,6 +24,10 @@ class FlightDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_flight_detail)
 
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+        }
+
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         // Container defined in activity_flight_detail.xml:
@@ -47,12 +51,12 @@ class FlightDetailActivity : AppCompatActivity() {
 
         // Extract fields
         val destination = flightDetails.optString("destination", "Unknown")
-        val airport     = flightDetails.optString("airport", "Unknown")
-        val status      = flightDetails.optString("departure_status", "")
-        val time        = flightDetails.optString("time", "Unknown")
-        val delay       = flightDetails.optString("delay", "")
-        val gate        = flightDetails.optString("gate", "Unknown")
-        val numbersArr  = flightDetails.optJSONArray("flight_number")
+        val airport = flightDetails.optString("airport", "Unknown")
+        val status = flightDetails.optString("departure_status", "")
+        val time = flightDetails.optString("time", "Unknown")
+        val delay = flightDetails.optString("delay", "")
+        val gate = flightDetails.optString("gate", "Unknown")
+        val numbersArr = flightDetails.optJSONArray("flight_number")
 
         // Header with icon
         LinearLayout(this).apply {
