@@ -1,19 +1,18 @@
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000000"
     android:padding="16dp"
-    android:paddingTop="96dp"
-    android:background="#000000">
+    android:paddingTop="96dp">
 
     <TextView
         android:id="@+id/emptyNewsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:text="No news yet"
-        android:textSize="18sp"
         android:textColor="#888888"
-        android:layout_gravity="center"/>
+        android:textSize="18sp" />
 
     <ScrollView
         android:id="@+id/newsScroll"
@@ -22,11 +21,26 @@
         android:visibility="gone">
 
         <LinearLayout
-            android:id="@+id/newsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"/>
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/newsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp" />
+
+            <LinearLayout
+                android:id="@+id/flightDetailContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#6200EE"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:paddingTop="?attr/actionBarSize" />
+        </LinearLayout>
     </ScrollView>
 </FrameLayout>
