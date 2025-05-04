@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:backgroundTint="#333333"
-        app:navigationIcon="@android:drawable/ic_menu_search"
+        app:navigationIcon="@drawable/ic_search_inset"
         app:menu="@menu/bottom_bar_menu"
         app:hideOnScroll="true"
         app:fabCradleMargin="16dp"

@@ -4,7 +4,7 @@
 
     <item
         android:id="@+id/action_news"
-        android:icon="@android:drawable/ic_menu_info_details"
+        android:icon="@drawable/ic_news_inset"
         android:title="News"
         app:showAsAction="always"/>
 </menu>

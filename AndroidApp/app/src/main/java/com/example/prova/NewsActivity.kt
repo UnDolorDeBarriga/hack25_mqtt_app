@@ -36,7 +36,7 @@ class NewsActivity : ComponentActivity() {
     }
 
     private fun subscribeToNews() {
-        val brokerUrl = "tcp://192.168.71.147:18830"
+        val brokerUrl = "tcp://192.168.71.147:1883"
         mqttClient = MqttClient(brokerUrl, MqttClient.generateClientId(), MemoryPersistence())
         try {
             mqttClient.connect(MqttConnectOptions().apply {
