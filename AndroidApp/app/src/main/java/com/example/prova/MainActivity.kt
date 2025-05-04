@@ -119,16 +119,22 @@ class MainActivity : ComponentActivity() {
         val toShow = if (filter.isBlank()) {
             snapshot
         } else {
-            snapshot.filter { id ->
-                flightsData[id]?.let { info ->
-                    info.optString("airport").contains(filter, true) ||
-                            info.optString("destination").contains(filter, true) ||
-                            info.optString("time").contains(filter, true) ||
-                            (info.optJSONArray("flight_number")?.let { arr ->
-                                (0 until arr.length()).any { i ->
-                                    arr.optString(i).equals(filter, true)
-                                }
-                            } ?: false)
+            snapshot.filter { flightId ->
+                flightsData[flightId]?.let { info ->
+                    // 1) Airport / Destination / Time
+                    val matchesTextFields =
+                        info.optString("airport",    "").contains(filter, true) ||
+                                info.optString("destination","").contains(filter, true) ||
+                                info.optString("time",       "").contains(filter, true)
+
+                    // 2) Any flight_number contains the filter
+                    val arr = info.optJSONArray("flight_number")
+                    val matchesNumber = (0 until (arr?.length() ?: 0))
+                        .any { i ->
+                            arr!!.optString(i).contains(filter, true)
+                        }
+
+                    matchesTextFields || matchesNumber
                 } ?: false
             }
         }
