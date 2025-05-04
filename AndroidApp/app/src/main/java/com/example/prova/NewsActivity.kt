@@ -72,6 +72,7 @@ class NewsActivity : AppCompatActivity() {
         val emptyText = findViewById<TextView>(R.id.emptyNewsText)
         val scroll = findViewById<ScrollView>(R.id.newsScroll)
         val container = findViewById<LinearLayout>(R.id.newsContainer)
+        container.setPadding(0, dp(65), 0, 0)
 
         val arr = try {
             JSONArray(jsonArrayStr)

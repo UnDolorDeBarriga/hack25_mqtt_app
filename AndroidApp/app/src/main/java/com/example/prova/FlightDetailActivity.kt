@@ -126,7 +126,7 @@ class FlightDetailActivity : AppCompatActivity() {
             container.addView(timeLayout)
         }
 
-// 4) “Flight delayed n minutes” below, only if delayed
+        // 4) “Flight delayed n minutes” below, only if delayed
         if (status.equals("Retardat", true) && delay.isNotBlank()) {
             // parse delay into minutes
             val delayMinutes = if (delay.contains(":")) {
@@ -135,9 +135,16 @@ class FlightDetailActivity : AppCompatActivity() {
             } else {
                 delay.toIntOrNull() ?: 0
             }
+            val flightMinutes = if (time.contains(":")) {
+                val (h, m) = time.split(":", limit = 2)
+                (h.toIntOrNull() ?: 0) * 60 + (m.toIntOrNull() ?: 0)
+            } else {
+                time.toIntOrNull() ?: 0
+            }
+            val delayedM = delayMinutes - flightMinutes
 
             TextView(this).apply {
-                text = "Flight delayed $delayMinutes minutes"
+                text = "Flight delayed $delayedM minutes"
                 setTextColor(Color.RED)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                 gravity = Gravity.CENTER_HORIZONTAL
