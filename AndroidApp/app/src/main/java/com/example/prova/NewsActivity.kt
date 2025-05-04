@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -13,6 +14,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.card.MaterialCardView
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
@@ -22,7 +24,7 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
-class NewsActivity : ComponentActivity() {
+class NewsActivity : AppCompatActivity() {
     private lateinit var mqttClient: MqttClient
 
     // Change this if your broker’s topic differs
@@ -32,6 +34,13 @@ class NewsActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_news)
+
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+        }
+
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
         subscribeToNews()
     }
 
@@ -61,7 +70,7 @@ class NewsActivity : ComponentActivity() {
 
     private fun renderNewsPosts(jsonArrayStr: String) {
         val emptyText = findViewById<TextView>(R.id.emptyNewsText)
-        val scroll    = findViewById<ScrollView>(R.id.newsScroll)
+        val scroll = findViewById<ScrollView>(R.id.newsScroll)
         val container = findViewById<LinearLayout>(R.id.newsContainer)
 
         val arr = try {
@@ -73,17 +82,19 @@ class NewsActivity : ComponentActivity() {
 
         if (arr.length() == 0) {
             emptyText.visibility = View.VISIBLE
-            scroll.visibility    = View.GONE
+            scroll.visibility = View.GONE
             return
         }
 
         emptyText.visibility = View.GONE
-        scroll.visibility    = View.VISIBLE
+        scroll.visibility = View.VISIBLE
         container.removeAllViews()
 
         // Render newest-first
         for (i in arr.length() - 1 downTo 0) {
-            val obj = try { arr.getJSONObject(i) } catch (e: JSONException) {
+            val obj = try {
+                arr.getJSONObject(i)
+            } catch (e: JSONException) {
                 Log.e("NewsActivity", "Bad JSON at index $i", e)
                 continue
             }
@@ -92,8 +103,8 @@ class NewsActivity : ComponentActivity() {
     }
 
     private fun addNewsCard(parent: LinearLayout, item: JSONObject) {
-        val title       = item.optString("Title", "No Title")
-        val time        = item.optString("Time", "")
+        val title = item.optString("Title", "No Title")
+        val time = item.optString("Time", "")
         val description = item.optString("Description", "")
 
         // Card
@@ -128,7 +139,18 @@ class NewsActivity : ComponentActivity() {
         parent.addView(card)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     // Helpers
-    private fun dp(v: Int): Int  = (v * resources.displayMetrics.density).toInt()
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
     private fun dpF(v: Int): Float = v * resources.displayMetrics.density
 }

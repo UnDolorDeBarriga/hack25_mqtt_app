@@ -1,11 +1,16 @@
 package com.example.prova
 
 import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.Shader
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MenuItem
+import android.view.View
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -17,13 +22,15 @@ class FlightDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_flight_detail)
 
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+        }
+
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        // Container defined in activity_flight_detail.xml:
         val container = findViewById<LinearLayout>(R.id.flightDetailContainer)
         container.removeAllViews()
 
-        // Pull JSON from intent
         val flightDetailsJson = intent.getStringExtra("flight_details") ?: "{}"
         val flightDetails = try {
             JSONObject(flightDetailsJson)
@@ -38,30 +45,47 @@ class FlightDetailActivity : AppCompatActivity() {
             return
         }
 
-        // Extract fields
         val destination = flightDetails.optString("destination", "Unknown")
-        val airport     = flightDetails.optString("airport",     "Unknown")
-        val time        = flightDetails.optString("time",        "Unknown")
-        val gate        = flightDetails.optString("gate",        "Unknown")
-        val numbersArr  = flightDetails.optJSONArray("flight_number")
+        val airport = flightDetails.optString("airport", "Unknown")
+        val gate = flightDetails.optString("gate", "Unknown")
+        val numbersArr = flightDetails.optJSONArray("flight_number")
 
-        // 1) Header: Destination – Airport (large, bold, centered)
-        TextView(this).apply {
-            text = "$destination – $airport"
-            setTextColor(Color.WHITE)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(0, dp(8), 0, dp(16))
-            gravity = Gravity.CENTER_HORIZONTAL
+        // Header with icon
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(0, dp(16), 0, dp(16))
+
+            ImageView(this@FlightDetailActivity).apply {
+                setImageResource(android.R.drawable.ic_menu_compass)
+                setColorFilter(Color.WHITE)
+                setPadding(0, 0, dp(8), 0)
+            }.also(this::addView)
+
+            TextView(this@FlightDetailActivity).apply {
+                text = "$destination – $airport"
+                setTextColor(Color.WHITE)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+                setTypeface(typeface, Typeface.BOLD)
+            }.also(this::addView)
         }.also(container::addView)
 
-        // 2) Flight numbers (medium, bold, centered)
+        // Separator
+        View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(1)
+            ).apply { setMargins(0, dp(8), 0, dp(8)) }
+            setBackgroundColor(Color.GRAY)
+        }.also(container::addView)
+
+        // Flight numbers
         if (numbersArr != null) {
             for (i in 0 until numbersArr.length()) {
                 val num = numbersArr.optString(i, "Unknown")
                 TextView(this).apply {
                     text = num
-                    setTextColor(Color.WHITE)
+                    setTextColor(Color.LTGRAY)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
                     setTypeface(typeface, Typeface.BOLD)
                     setPadding(0, 0, 0, dp(8))
@@ -70,17 +94,35 @@ class FlightDetailActivity : AppCompatActivity() {
             }
         }
 
-        // 3) Gate info (normal, centered)
+        // Gate info
         TextView(this).apply {
             text = "Gate: $gate"
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             setPadding(0, dp(16), 0, 0)
             gravity = Gravity.CENTER_HORIZONTAL
+
+            // Gradient text effect
+            paint.shader = LinearGradient(
+                0f, 0f, 0f, textSize,
+                intArrayOf(Color.CYAN, Color.BLUE),
+                null,
+                Shader.TileMode.CLAMP
+            )
         }.also(container::addView)
     }
 
-    // dp → px helper
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
 }
