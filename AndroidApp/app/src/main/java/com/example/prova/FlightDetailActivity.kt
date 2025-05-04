@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -19,14 +21,14 @@ class FlightDetailActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        // Container defined in activity_flight_detail.xml:
+        // Container for dynamic detail views
         val container = findViewById<LinearLayout>(R.id.flightDetailContainer)
         container.removeAllViews()
 
-        // Pull JSON from intent
-        val flightDetailsJson = intent.getStringExtra("flight_details") ?: "{}"
+        // Parse incoming JSON
+        val jsonStr = intent.getStringExtra("flight_details") ?: "{}"
         val flightDetails = try {
-            JSONObject(flightDetailsJson)
+            JSONObject(jsonStr)
         } catch (e: JSONException) {
             Log.e("FlightDetailActivity", "Invalid JSON: ${e.message}")
             TextView(this).apply {
@@ -40,12 +42,14 @@ class FlightDetailActivity : AppCompatActivity() {
 
         // Extract fields
         val destination = flightDetails.optString("destination", "Unknown")
-        val airport     = flightDetails.optString("airport",     "Unknown")
-        val time        = flightDetails.optString("time",        "Unknown")
-        val gate        = flightDetails.optString("gate",        "Unknown")
+        val airport     = flightDetails.optString("airport", "Unknown")
+        val status      = flightDetails.optString("departure_status", "")
+        val time        = flightDetails.optString("time", "Unknown")
+        val delay       = flightDetails.optString("delay", "")
+        val gate        = flightDetails.optString("gate", "Unknown")
         val numbersArr  = flightDetails.optJSONArray("flight_number")
 
-        // 1) Header: Destination – Airport (large, bold, centered)
+        // 1) Header: Destination – Airport
         TextView(this).apply {
             text = "$destination – $airport"
             setTextColor(Color.WHITE)
@@ -55,7 +59,44 @@ class FlightDetailActivity : AppCompatActivity() {
             gravity = Gravity.CENTER_HORIZONTAL
         }.also(container::addView)
 
-        // 2) Flight numbers (medium, bold, centered)
+        // 2) If delayed, show bold red "RETARDAT"
+        if (status.equals("Retardat", true) && delay.isNotBlank()) {
+            TextView(this).apply {
+                text = "RETARDAT"
+                setTextColor(Color.RED)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+                setTypeface(typeface, Typeface.BOLD)
+                setPadding(0, 0, 0, dp(16))
+                gravity = Gravity.CENTER_HORIZONTAL
+            }.also(container::addView)
+        }
+
+        // 3) Time (always) and optional delay in red
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+        }.also { timeLayout ->
+            // Scheduled time
+            TextView(this).apply {
+                text = time
+                setTextColor(Color.WHITE)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+            }.also(timeLayout::addView)
+
+            // Delay if present
+            if (status.equals("Retardat", true) && delay.isNotBlank()) {
+                TextView(this).apply {
+                    text = " $delay"
+                    setTextColor(Color.RED)
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
+                }.also(timeLayout::addView)
+            }
+
+            container.addView(timeLayout)
+        }
+
+        // 4) Flight numbers (bold, centered)
         if (numbersArr != null) {
             for (i in 0 until numbersArr.length()) {
                 val num = numbersArr.optString(i, "Unknown")
@@ -70,7 +111,7 @@ class FlightDetailActivity : AppCompatActivity() {
             }
         }
 
-        // 3) Gate info (normal, centered)
+        // 5) Gate info
         TextView(this).apply {
             text = "Gate: $gate"
             setTextColor(Color.WHITE)
@@ -81,6 +122,5 @@ class FlightDetailActivity : AppCompatActivity() {
     }
 
     // dp → px helper
-    private fun dp(value: Int): Int =
-        (value * resources.displayMetrics.density).toInt()
+    private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
 }

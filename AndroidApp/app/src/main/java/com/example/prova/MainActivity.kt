@@ -50,19 +50,18 @@ class MainActivity : ComponentActivity() {
                 .showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
         }
 
-        // 3) **NEW** – handle your “news” menu-item here
+        // 3) Handle “news” menu-item
         bottomBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_news -> {
-                    // Launch the NewsActivity
                     startActivity(Intent(this, NewsActivity::class.java))
                     true
                 }
-
                 else -> false
             }
         }
-        // 3) Real-time filtering as user types
+
+        // 4) Real-time filtering as user types
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
@@ -71,20 +70,19 @@ class MainActivity : ComponentActivity() {
             }
         })
 
-        // 4) Star FAB opens a video link
+        // 5) Star FAB opens a video link
         findViewById<FloatingActionButton>(R.id.fabStar).setOnClickListener {
             val url = "http://192.168.71.147:8000/mouseketool.mp4"
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
 
-        // 5) Connect to MQTT
+        // 6) Connect to MQTT
         connectAndSubscribe()
     }
 
     private fun connectAndSubscribe() {
         val brokerUrl = "tcp://192.168.71.147:1883"
         mqttClient = MqttClient(brokerUrl, MqttClient.generateClientId(), MemoryPersistence())
-
         try {
             mqttClient.connect(MqttConnectOptions().apply {
                 isCleanSession = true
@@ -93,7 +91,6 @@ class MainActivity : ComponentActivity() {
             })
             Log.d("MQTT", "Connected to $brokerUrl")
 
-            // Correct lambda: topic:String, message:MqttMessage
             mqttClient.subscribe("flights/#") { topic, message ->
                 val flightId = topic.substringAfter("flights/").lowercase()
                 try {
@@ -111,25 +108,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Renders cards for flights. If [filter] is non-empty, only shows matching flights.
-     * Uses a snapshot of the flights list to avoid concurrent modification.
-     */
     private fun renderFlightCards(filter: String = "") {
         val container = findViewById<LinearLayout>(R.id.flightsContainer)
         container.removeAllViews()
 
-        // Take a snapshot so MQTT updates won't corrupt our iteration
+        // Snapshot to avoid concurrent modification
         val snapshot = flights.toList()
 
-        // Decide which flightIds to show
+        // Filter if needed
         val toShow = if (filter.isBlank()) {
             snapshot
         } else {
             snapshot.filter { id ->
                 flightsData[id]?.let { info ->
                     info.optString("airport").contains(filter, true) ||
-                    info.optString("destination").contains(filter, true) ||
+                            info.optString("destination").contains(filter, true) ||
                             info.optString("time").contains(filter, true) ||
                             (info.optJSONArray("flight_number")?.let { arr ->
                                 (0 until arr.length()).any { i ->
@@ -140,11 +133,11 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Build one card per flightId in toShow
+        // Build cards
         toShow.forEach { flightId ->
-            val info = flightsData[flightId] ?: return@forEach
+            val info = flightsData[flightId]!!
 
-            // Card container
+            // Card root
             val card = MaterialCardView(this).apply {
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).also {
                     it.setMargins(dp(4), dp(8), dp(4), dp(16))
@@ -154,15 +147,11 @@ class MainActivity : ComponentActivity() {
                 isClickable = true
                 setOnClickListener {
                     startActivity(
-                        Intent(
-                            this@MainActivity,
-                            FlightDetailActivity::class.java
-                        ).apply {
+                        Intent(this@MainActivity, FlightDetailActivity::class.java).apply {
                             putExtra("flight_id", flightId)
                             putExtra("flight_details", info.toString())
-                            Log.e("FlightDetailActivity", "Flight ID: $flightId")
-                            Log.e("FlightDetailActivity", "Flight Details: ${info.toString()}")
-                        })
+                        }
+                    )
                 }
             }
 
@@ -172,35 +161,41 @@ class MainActivity : ComponentActivity() {
                 setPadding(dp(16), dp(16), dp(16), dp(16))
             }
 
-            // Top row: destination + time
+            // Extract fields
+            val airport     = info.optString("airport", "").uppercase()
+            val dest        = info.optString("destination", "")
+            val status      = info.optString("departure_status", "")
+            val normalTime  = info.optString("time", "")
+            val delay       = info.optString("delay", "")
+            val showTime    = if (status.equals("Retardat", true) && delay.isNotBlank()) delay else normalTime
+            val timeColor   = if (status.equals("Retardat", true) && delay.isNotBlank()) Color.RED else Color.WHITE
+
+            // Top row: airport – destination, then time or delay (red if delayed)
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
 
                 TextView(this@MainActivity).apply {
-                    // read airport + destination
-                    val airport = info.optString("airport", "").uppercase()
-                    val dest    = info.optString("destination", "")
-                    text = "$airport - $dest"
+                    text = "$airport – $dest"
                     setTextColor(Color.WHITE)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
                     layoutParams = LinearLayout.LayoutParams(0, WRAP_CONTENT, 1f)
                 }.also(::addView)
 
-
                 TextView(this@MainActivity).apply {
-                    text = info.optString("time")
-                    setTextColor(Color.WHITE)
+                    text = showTime
+                    setTextColor(timeColor)
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
                 }.also(::addView)
 
             }.also(vertical::addView)
 
-            // Bottom row: up to 3 flight numbers, then "…"
+            // Bottom row: flight numbers (≤3 then “…”)
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
-                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                    .also { it.topMargin = dp(8) }
+                layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT).also {
+                    it.topMargin = dp(8)
+                }
 
                 info.optJSONArray("flight_number")?.let { arr ->
                     val count = minOf(arr.length(), 3)
@@ -233,6 +228,6 @@ class MainActivity : ComponentActivity() {
     }
 
     // dp → px helpers
-    private fun dp(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
-    private fun dpF(dp: Int): Float = dp * resources.displayMetrics.density
+    private fun dp(value: Int): Int  = (value * resources.displayMetrics.density).toInt()
+    private fun dpF(value: Int): Float = value * resources.displayMetrics.density
 }
