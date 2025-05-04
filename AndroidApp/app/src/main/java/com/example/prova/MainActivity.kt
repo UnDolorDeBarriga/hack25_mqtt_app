@@ -29,6 +29,9 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.json.JSONException
 import android.view.MotionEvent
 import org.json.JSONObject
+import java.text.SimpleDateFormat
+import java.util.Locale
+import kotlin.text.get
 
 class MainActivity : ComponentActivity() {
     private lateinit var mqttClient: MqttClient
@@ -85,6 +88,7 @@ class MainActivity : ComponentActivity() {
                     startActivity(Intent(this, NewsActivity::class.java))
                     true
                 }
+
                 else -> false
             }
         }
@@ -173,8 +177,21 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+//        val sortedFlights = toShow.sortedBy { flightId ->
+//            flightsData[flightId]?.optString("time")?.let { time ->
+//                try {
+//                    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+//                    formatter.isLenient = false
+//                    formatter.parse(time)?.time
+//                } catch (e: Exception) {
+//                    Log.e("RENDER", "Errore nel parsing del tempo: $time")
+//                    null
+//                }
+//            } ?: Long.MAX_VALUE
+//        }
+
         // Build cards
-        toShow.forEach { flightId ->
+        sortedFlights.forEach { flightId ->
             val info = flightsData[flightId]!!
 
             // Extract fields
@@ -220,7 +237,21 @@ class MainActivity : ComponentActivity() {
                 setPadding(dp(16), dp(16), dp(16), dp(16))
             }
 
-            // Top row: airport – destination & time/delay
+            // Extract fields
+            val airport = info.optString("airport", "").uppercase()
+            val dest = info.optString("destination", "")
+            val status = info.optString("departure_status", "")
+            val normalTime = info.optString("time", "")
+            val delay = info.optString("delay", "")
+            val showTime =
+                if (status.equals("Retardat", true) && delay.isNotBlank()) delay else normalTime
+            val timeColor = if (status.equals(
+                    "Retardat",
+                    true
+                ) && delay.isNotBlank()
+            ) Color.RED else Color.WHITE
+
+            // Top row: airport – destination, then time or delay (red if delayed)
             LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
